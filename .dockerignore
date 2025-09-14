@@ -1,0 +1,50 @@
+# Git files
+.git
+.gitignore
+
+# Environment files (security)
+.env
+.env.local
+.env.production
+
+# Documentation
+README.md
+docs/
+
+# Development files
+.idea/
+.vscode/
+*.log
+*.tmp
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Test files
+*_test.go
+tests/
+coverage/
+
+# Build artifacts
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temporary files
+tmp/
+temp/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Docker files (avoid recursion)
+Dockerfile*
+docker-compose*.yml

@@ -1,0 +1,144 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: uploadparty-db
+    environment:
+      POSTGRES_USER: uploadparty
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password_change_me}
+      POSTGRES_DB: uploadparty_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - uploadparty-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uploadparty"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: uploadparty-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-secure_redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - uploadparty-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Backend API
+  api:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile
+    container_name: uploadparty-api
+    environment:
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: uploadparty
+      DB_PASSWORD: ${DB_PASSWORD:-secure_password_change_me}
+      DB_NAME: uploadparty_db
+      DB_SSL_MODE: disable
+      
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secure-jwt-secret-key-change-me}
+      
+      # Redis
+      REDIS_URL: redis://:${REDIS_PASSWORD:-secure_redis_password}@redis:6379
+      
+      # Server
+      PORT: 8080
+      GIN_MODE: release
+      
+      # AWS S3
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-uploadparty-beats}
+      
+      # Native Instruments
+      NI_API_KEY: ${NI_API_KEY}
+      NI_API_URL: ${NI_API_URL:-https://api.native-instruments.com}
+      
+      # Security
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - uploadparty-network
+    volumes:
+      - ./uploads:/app/uploads  # For temporary file storage
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/uploads
+
+  # Frontend (optional, can be deployed separately)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: uploadparty-frontend
+    environment:
+      REACT_APP_API_URL: ${API_URL:-http://localhost:8080}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - uploadparty-network
+    restart: unless-stopped
+
+  # Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: uploadparty-nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - uploadparty-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  uploadparty-network:
+    driver: bridge
