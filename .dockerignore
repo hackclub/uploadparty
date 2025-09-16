@@ -23,7 +23,7 @@ npm-debug.log*
 
 # Test files
 *_test.go
-tests/
+backend/tests/
 coverage/
 
 # Build artifacts

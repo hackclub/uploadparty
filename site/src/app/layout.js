@@ -1,5 +1,9 @@
+// this is where all my routes are gonana be at
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import SkipAuthButton from "../components/shared/SkipAuthButton";
+import { headers } from "next/headers";
+import { isMobileUserAgent } from "../lib/hooks/utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,12 +21,17 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const ua = headers().get("user-agent") || "";
+  const uaMobile = isMobileUserAgent(ua);
+
   return (
-    <html lang="en">
+    <html lang="en" data-ua-mobile={uaMobile ? "true" : "false"}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased transition-[padding] duration-300 ease-in-out`}
+        data-ua-mobile={uaMobile ? "true" : "false"}
       >
         {children}
+        <SkipAuthButton />
       </body>
     </html>
   );
