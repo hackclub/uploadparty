@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-export default function Navbar() {
+export default function SubmissionForm() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -10,6 +10,8 @@ export default function Navbar() {
     if (!body) return;
     // Ensure body padding transitions smoothly and responds to sidebar state on md+ screens
     body.classList.add("transition-[padding]", "duration-300", "ease-in-out");
+
+    // Update body padding-left classes for md+ screens
     if (open) {
       body.classList.remove("md:pl-14");
       body.classList.add("md:pl-64");
@@ -17,11 +19,19 @@ export default function Navbar() {
       body.classList.remove("md:pl-64");
       body.classList.add("md:pl-14");
     }
+
+    // Expose sidebar state for other fixed elements (like Header)
+    body.setAttribute("data-sidebar", open ? "open" : "closed");
+
+    // Cleanup on unmount: optional, but keeps DOM tidy
+    return () => {
+      body.removeAttribute("data-sidebar");
+    };
   }, [open]);
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen border-r border-black/10 dark:border-white/10 bg-white/70 dark:bg-black/40 backdrop-blur supports-[backdrop-filter]:bg-white/60 z-50 transition-[width] duration-300 ease-in-out ${
+      className={`fixed left-0 top-16 h-[calc(100vh-4rem)] border-r border-black/10 dark:border-white/10 bg-white/70 dark:bg-black/40 backdrop-blur supports-[backdrop-filter]:bg-white/60 z-50 transition-[width] duration-300 ease-in-out ${
         open ? "w-64" : "w-14"
       }`}
     >

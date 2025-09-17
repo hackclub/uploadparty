@@ -1,4 +1,4 @@
-import Navbar from "../../components/shared/Navbar";
+import SubmissionForm from "../../components/shared/submissionForm";
 
 export const metadata = {
   title: "App | UploadParty",
@@ -8,7 +8,7 @@ export const metadata = {
 export default function AppLayout({ children }) {
   return (
     <section>
-      <Navbar />
+      <SubmissionForm />
       {children}
     </section>
   );
