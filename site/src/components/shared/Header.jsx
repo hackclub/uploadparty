@@ -1,37 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function Header() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    const body = typeof document !== "undefined" ? document.body : null;
-    if (!body) return;
-
-    const update = () => {
-      const v = body.getAttribute("data-sidebar") === "open";
-      setSidebarOpen(v);
-    };
-
-    // Initial sync
-    update();
-
-    // Observe changes to the body attribute set by the Sidebar
-    const mo = new MutationObserver(update);
-    mo.observe(body, { attributes: true, attributeFilter: ["data-sidebar"] });
-
-    return () => mo.disconnect();
-  }, []);
-
-  const frameShift = sidebarOpen
-    ? "left-0 md:left-64 md:w-[calc(100%-16rem)]"
-    : "left-0 md:left-14 md:w-[calc(100%-3.5rem)]";
-
   return (
-    <header
-      className={`fixed top-0 w-full z-[80] bg-[#fad400] text-black flex flex-row items-center justify-between min-h-16 transition-[left,width] duration-300 ease-in-out ${frameShift}`}
-    >
+    <header className="fixed top-0 w-full z-[80] bg-[#fad400] text-black flex flex-row items-center justify-between min-h-16">
       <div className="flex justify-between w-full h-full px-5">
         {/* Left group */}
         <div className="pointer-events-auto flex flex-row items-center gap-4 md:gap-6 isolation-isolate">
