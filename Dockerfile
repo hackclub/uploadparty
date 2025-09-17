@@ -1,68 +1,90 @@
-# Multi-stage build for security and smaller image size
-FROM golang:1.21-alpine AS builder
+# Multi-stage build for backend (Go) and frontend (Next.js)
 
-# Install security updates and required packages
+# --- Backend builder ---
+FROM golang:1.21-alpine AS gobuilder
+
+# Install required packages for Go build
 RUN apk update && apk add --no-cache \
     ca-certificates \
     git \
     tzdata \
     && rm -rf /var/cache/apk/*
 
-# Create appuser for security
+# Non-root user (mirrored later)
 RUN adduser -D -g '' appuser
 
-# Set working directory
 WORKDIR /app
 
-# Copy go mod and sum files for dependency caching
+# Copy go mod/sum and download deps (expects repo-root build context)
 COPY backend/go.mod backend/go.sum ./
-
-# Download dependencies
 RUN go mod download && go mod verify
 
-# Copy backend source code
+# Copy backend source code and build
 COPY backend/ .
-
-# Build the application with security flags
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' \
     -a -installsuffix cgo \
     -o main cmd/server/main.go
 
-# Final stage - minimal runtime image
-FROM alpine:3.18
+# --- Frontend dependencies (for build) ---
+FROM node:20-alpine AS webdeps
+WORKDIR /web
+COPY site/package*.json ./
+# Full deps for build to avoid missing dev-time tools (like Tailwind/PostCSS)
+RUN npm ci
 
-# Install security updates and CA certificates
+# --- Frontend builder ---
+FROM node:20-alpine AS webbuilder
+WORKDIR /web
+COPY --from=webdeps /web/node_modules ./node_modules
+COPY site/ .
+RUN npm run build
+
+# --- Frontend production deps (runtime only) ---
+FROM node:20-alpine AS webproddeps
+WORKDIR /web
+COPY site/package*.json ./
+RUN npm ci --omit=dev
+
+# --- Final runtime image: Node (for Next.js) + Go binary ---
+FROM node:20-alpine
+
+# Install CA certs and tzdata for consistency
 RUN apk update && apk add --no-cache \
     ca-certificates \
     tzdata \
+    wget \
     && rm -rf /var/cache/apk/* \
     && update-ca-certificates
 
-# Create appuser in final image
+# Create non-root user
 RUN adduser -D -g '' appuser
 
-# Set working directory
+# Working directory
 WORKDIR /app
 
-# Copy the binary from builder stage
-COPY --from=builder /app/main .
+# Backend binary
+COPY --from=gobuilder /app/main /app/main
 
-# Copy any required config files (if needed)
-# COPY --from=builder /app/config ./config
+# Frontend app (copy only what's needed to run `next start`)
+RUN mkdir -p /app/site
+COPY --from=webbuilder /web/.next /app/site/.next
+COPY --from=webbuilder /web/public /app/site/public
+COPY --from=webbuilder /web/package.json /app/site/package.json
+COPY --from=webproddeps /web/node_modules /app/site/node_modules
 
-# Change ownership to appuser
+# Ownership
 RUN chown -R appuser:appuser /app
 
-# Switch to non-root user
+# Switch to non-root
 USER appuser
 
-# Expose port (use non-privileged port)
-EXPOSE 8080
+# Expose backend and frontend ports
+EXPOSE 8080 3000
 
-# Add health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+# Healthcheck for backend (frontend served on 3000)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-# Run the application
-CMD ["./main"]
+# Start both processes: backend (8080) and Next.js (3000)
+CMD ["sh", "-c", "./main & (cd site && node node_modules/next/dist/bin/next start -p 3000)"]
