@@ -1,1 +1,1 @@
-# Upload Party 🎵
+# Upload Party
