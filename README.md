@@ -6,6 +6,11 @@ Upload Party is a gamified online music creation platform designed for 500 teena
 
 Help 50,000 high school students build technical skills through music creation, gamification, and community collaboration.
 
+Note: This is not a marketplace. There is no buying/selling or licensing of beats here — teens upload their beats, track how long they worked, build community, and earn prizes.
+
+## 📄 One‑Pager
+- Quick overview: see docs/OnePager.md
+
 ## 🏗️ Architecture
 
 ### Backend (Go + Gin)
@@ -29,6 +34,11 @@ Help 50,000 high school students build technical skills through music creation, 
 - **Reverse Proxy**: Nginx with SSL termination
 - **Orchestration**: Docker Compose
 - **Security**: Non-root containers, read-only filesystems
+
+### Scalability & Capacity
+- Platform application: UploadParty is designed as a platform (web app + APIs), not a one-off site.
+- Initial capacity: Expect to hold audio files for approximately 100 daily active users (DAU), with the ability to scale storage and throughput.
+- Approach: Use AWS S3 for durable object storage (consider lifecycle policies and multipart uploads), enable horizontal scaling for the API, and keep CDN/static delivery in mind for media playback.
 
 ## 📁 Project Structure
 
@@ -125,7 +135,7 @@ Help 50,000 high school students build technical skills through music creation, 
 - Point-based scoring system
 - User levels and rankings
 - Achievement badges
-- Real-time leaderboards
+- Real-time leaderboards showcasing hours spent on projects/songs
 
 ### 🤝 Community Features
 - User profiles and portfolios
@@ -153,7 +163,7 @@ Help 50,000 high school students build technical skills through music creation, 
 - **Beats**: Audio files, metadata, engagement metrics
 - **Challenges**: Competitions, rules, rewards
 - **Comments**: Timestamped feedback on beats
-- **Scores**: Point tracking and leaderboard data
+- **Scores**: Point/time tracking and leaderboard data (hours spent on projects/songs)
 
 ### Relationships
 - Users create beats and participate in challenges
@@ -180,7 +190,7 @@ Help 50,000 high school students build technical skills through music creation, 
 - `POST /api/v1/challenges/:id/submit` - Submit to challenge
 
 ### Community
-- `GET /api/v1/leaderboard` - Get leaderboard
+- `GET /api/v1/leaderboard` - Get leaderboard of hours spent on projects/songs
 - `GET /api/v1/users/:id` - User profile
 - `POST /api/v1/users/:id/follow` - Follow user
 

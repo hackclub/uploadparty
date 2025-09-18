@@ -31,7 +31,6 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased transition-[padding] duration-300 ease-in-out pt-16`}
         data-ua-mobile={uaMobile ? "true" : "false"}
       >
-        <Header />
         {children}
         <SkipAuthButton />
       </body>

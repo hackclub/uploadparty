@@ -40,12 +40,13 @@ How it works (Tech at a glance)
 - DevOps: Docker Compose for local parity; health checks and rate limits
 
 Milestones
-- M0 RSVP Launchpad: Build a simple website that allows people to RSVP and redirects them to join the community launching on September 26.
-- M1 Uploads: S3 integration, size/MIME validation
-- M2 Social: Likes/comments, basic feed
-- M3 Challenges: Create/list/submit, scoring, winners
-- M4 Beta Hardening: Rate limits, timeouts, telemetry, docs
-- M5 Hackatime Extension: Build an extension/integration with https://hackatime.hackclub.com that links time-tracked activity to the user’s VST workflow (e.g., deep-link from activity to open the relevant VST/project).
+- M0 RSVP Launchpad (Launch: Friday, September 26, 2025): Build a simple website that allows people to RSVP and redirects them to join the community launching on September 26.
+- M1 Platform Foundation (Fully complete before: Friday, October 10, 2025): Work begins immediately upon the RSVP Launchpad going live (M0) and is planned to be entirely completed before Oct 10. Establish core platform (auth/profiles, backend/frontend wiring, security/CORS) and prepare for subsequent feature increments.
+- M2 Uploads: S3 integration, size/MIME validation
+- M3 Social: Likes/comments, basic feed
+- M4 Challenges: Create/list/submit, scoring, winners
+- M5 Beta Hardening: Rate limits, timeouts, telemetry, docs
+- M6 Hackatime Extension: Build an extension/integration with https://hackatime.hackclub.com that links time-tracked activity to the user’s VST workflow (e.g., deep-link from activity to open the relevant VST/project).
 
 Success Metrics
 - DAU/WAU of creators and listeners
