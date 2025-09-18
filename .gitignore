@@ -113,6 +113,8 @@ jspm_packages/
 # Go workspace file
 go.work
 
+docs
+
 # nginx scripts and configurations
 nginx/
 nginx.conf

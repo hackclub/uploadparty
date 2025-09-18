@@ -52,7 +52,8 @@ Document Type: Partner one‑pager (Google‑Doc style headings)
 - M6: Hackatime extension — integrate https://hackatime.hackclub.com for time‑tracked activity linked to VST workflows.  
 
 ## 6) NI Co‑Branding, Approvals, and Integration
-- Approval workflow:  
+- Role: Sponsor-only. NI provides prizes/licenses and brand support; any use of NI brand names, logos, or assets requires prior written approval.
+- Approval workflow:
   1) Share staging link, copy, and assets by Monday EOD (Sept 22).  
   2) Collect NI feedback within 24–48 hours; turn around revisions quickly.  
   3) Lock content no later than Thursday for Friday launch (Sept 26).  

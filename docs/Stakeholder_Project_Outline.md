@@ -38,10 +38,7 @@ Prepared by: Dhamari (PM: Dhamari)
    - Fit: Aligns with customer preference for iterative visibility and the team’s experience with rapid web delivery and DevOps practices.
 
    2.2 Key Principles and Practices
-   - Balance people, process, product: Keep team velocity sustainable; enforce WIP limits; focus on high-impact features.
-   - Promote visibility: Public roadmap for stakeholders, sprint reviews/demos each iteration, and shared dashboards for CI health and release status.
-   - Diligent configuration management: Git feature-branch workflow, code reviews, and tagged releases; Docker Compose for consistent environments; environment variable management via .env and deployment secrets.
-   - Reliance on standards: Use established frameworks (Gin, GORM, Next.js), HTTP/REST conventions, JWT for auth, and industry best practices for security and accessibility.
+   - Mission-first: Inspire and enable as many teens as possible to get into music production; lower barriers to entry through accessible tools, education, and community.
 
 3. Project Organization and Responsibilities (The "Who" and "Where")
    3.1 Organizational Structure
@@ -49,7 +46,8 @@ Prepared by: Dhamari (PM: Dhamari)
    - Supporting roles: Designer, Security Advisor, and Data/Analytics as-needed.
 
    3.2 Key Personnel and Responsibilities
-   - Executive Sponsor: Owns vision and ROI; removes organizational blockers; endorses CM policies; ensures budgets and alignment.
+   - Current staffing model: Single-owner/operator. Dhamari is presently responsible for all roles listed below (PM, Engineering Lead, Backend, Frontend, QA/UAT, and DevOps).
+   - Native Instruments support: Sponsor-only role. NI sponsors the program with products/prizes/licenses and is not responsible for operations. Any use of NI brand names, logos, or assets requires prior written approval. NI will review/approve all public website changes that reference NI prior to publication.
    - Product Manager: Owns roadmap and prioritization; interfaces with stakeholders; defines success metrics; ensures discovery and usability.
    - Engineering Lead: Owns architecture and technical quality; coordinates releases; ensures security and performance baselines.
    - Backend Engineer(s): Implement Go/Gin services, DB schema, and integrations; maintain API contracts and performance.
@@ -72,41 +70,3 @@ Prepared by: Dhamari (PM: Dhamari)
    - M5: Hardening + Beta – rate limits, timeouts, telemetry, documentation.
    - M6: Hackatime extension – build https://hackatime.hackclub.com integration that links time-tracked activity to the user's VST workflow (e.g., deep links to the relevant VST or associated project), ship MVP browser extension.
    - Tracking: Roadmap in PM tool; Gantt-lite or milestone board; burndown reports; earned value tracking for larger contracts.
-
-
-   4.3 Quality Assurance Approach
-   - Shift-left testing: Unit tests for Go services (go test ./...), basic integration tests for critical flows, manual UAT for UI.
-   - Reviews/inspections: PR reviews with checklists (security, performance, accessibility, error handling).
-   - Automation: Linting and builds on push; healthcheck endpoints and smoke tests in staging; production readiness checklist.
-
-5. Risk Management Summary
-   5.1 Top Identified Risks
-   - Personnel: Key contributor bandwidth; onboarding overhead; context silos.
-   - Schedule: Scope creep; external dependency delays (AWS, NI APIs); underestimation of upload/processing complexity.
-   - Technical: Large-file handling, S3 costs/egress, security (auth/CORS), performance under load, data migrations.
-   - Compliance/Security: Secrets handling, PII protection, copyright issues for uploaded content.
-
-   5.2 Risk Aversion Strategies
-   - Contingency: Feature flags and phased rollouts; maintain a lean MLP (minimal lovable product) scope.
-   - Mitigation: Strict CORS, size/MIME validation, rate limiting; thorough logging and basic observability.
-   - Process: Definition of Done includes security and performance checks; backlog grooming to control scope.
-   - Resourcing: Cross-training to reduce single points of failure; external contractors on-call for spikes.
-
-6. Standards and Documentation
-   6.1 Applicable Standards
-   - Software engineering: IEEE documentation practices (as applicable), REST API conventions, OWASP ASVS for security controls, semantic versioning for releases.
-   - Process: Lightweight Agile with change control; CM via Git with protected branches.
-
-   6.2 Key Documentation to be Produced
-   - Software Requirements Specification (SRS) – functional scope and NFRs.
-   - Software Design Document (SDD) – architecture, data model, and integration diagrams.
-   - API Reference – endpoints, request/response schemas, auth model.
-   - Test Plan – unit, integration, UAT scenarios; release criteria.
-   - Operations Runbook – deployment, monitoring, incident response.
-   - This Stakeholder Project Outline – executive summary and governance.
-
-7. Evolution and Change Management
-   - Change Intake: Requests logged in PM tool; evaluated for business value, risk, and effort.
-   - Decision Process: Configuration Control Board (CCB) formed by PM, Engineering Lead, and Sponsor meets weekly or ad-hoc for critical changes.
-   - Versioning: Semantic versioning; release notes accompany each tagged release; rollback plans documented.
-   - Traceability: Link requirements → tickets → commits → builds → deployments; maintain visibility across artifacts.
