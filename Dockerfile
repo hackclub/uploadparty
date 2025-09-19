@@ -85,8 +85,8 @@ USER appuser
 EXPOSE 8080 3000
 
 # Healthcheck for backend (frontend served on 3000)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Start both processes: backend (8080) and Next.js (3000)
-CMD ["sh", "-c", "PORT=8080 ./main & (cd site && node node_modules/next/dist/bin/next start -p 3000)"]
+CMD ["sh", "-c", "PORT=8080 ./main & sleep 2 && (cd site && node node_modules/next/dist/bin/next start -p 3000) & wait"]
