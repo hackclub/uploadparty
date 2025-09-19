@@ -21,6 +21,8 @@ RUN go mod download && go mod verify
 
 # Copy backend source code and build
 COPY backend/ .
+# Ensure module graph and go.sum are up to date after copying sources
+RUN go mod tidy && go mod download
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' \
     -a -installsuffix cgo \
