@@ -76,15 +76,6 @@ Document Type: Partner one‑pager (Google‑Doc style headings)
 - We began before the roadmap was fully clear; we now have a concrete, agreed technical plan and milestone sequence.  
 - The additional 1–2 business days ensures the RSVP experience meets quality expectations for brand, clarity, and stability — leading to a smoother launch week and fewer last‑minute changes.
 
-## 10) Next Steps & Contacts
-- By Monday EOD (Sept 22): Share staging link, copy deck, asset pack for approval.  
-- Tuesday–Thursday: Iterate per feedback; prep final assets.  
-- Friday (Sept 26): Launch RSVP/community opening day.  
-- Contacts:  
-  - Product/PM: Dhamari (email/Slack)  
-  - Engineering Lead: Dhamari  
-  - General: support@uploadparty.local
-
 ---
 
 ## 11) Engagement Plan & Permission Request

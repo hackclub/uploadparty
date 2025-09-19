@@ -1,10 +1,10 @@
 // this is where all my routes are gonana be at
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import SkipAuthButton from "../components/SkipAuthButton";
-import Header from "../components/shared/Header";
+import SkipAuthButton from "./components/SkipAuthButton";
+import Header from "./components/shared/Header";
 import { headers } from "next/headers";
-import { isMobileUserAgent } from "../lib/hooks/utils";
+import { isMobileUserAgent } from "./lib/hooks/utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

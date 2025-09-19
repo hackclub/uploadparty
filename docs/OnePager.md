@@ -31,7 +31,7 @@ Key Features (MLP)
 Value Proposition
 - Learn by doing: low friction uploads + instant feedback
 - Stay engaged: gamification and challenges
-- Grow reputation: badges, leaderboards that showcase hours spent on projects/songs, and featured winners
+- Grow reputation: badges, leaderboards that showcase hours spent on projects/songs.
 
 How it works (Tech at a glance)
 - Frontend: Next.js 15 (App Router), React 19, Tailwind CSS 4
@@ -41,29 +41,9 @@ How it works (Tech at a glance)
 
 Milestones
 - M0 RSVP Launchpad (Launch: Friday, September 26, 2025): Build a simple website that allows people to RSVP and redirects them to join the community launching on September 26.
-- M1 Platform Foundation (Fully complete before: Friday, October 10, 2025): Work begins immediately upon the RSVP Launchpad going live (M0) and is planned to be entirely completed before Oct 10. Establish core platform (auth/profiles, backend/frontend wiring, security/CORS) and prepare for subsequent feature increments.
+- M1 Platform Foundation : Work begins immediately upon the RSVP Launchpad going live (M0) and is planned to be entirely completed before Oct 10. Establish core platform (auth/profiles, backend/frontend wiring, security/CORS) and prepare for subsequent feature increments.
 - M2 Uploads: S3 integration, size/MIME validation
 - M3 Social: Likes/comments, basic feed
 - M4 Challenges: Create/list/submit, scoring, winners
-- M5 Beta Hardening: Rate limits, timeouts, telemetry, docs
+- M5 Beta Hardening: Rate limits, timeouts, telemetry, docs (Fully complete before: Friday, October 10, 2025)
 - M6 Hackatime Extension: Build an extension/integration with https://hackatime.hackclub.com that links time-tracked activity to the user’s VST workflow (e.g., deep-link from activity to open the relevant VST/project).
-
-Success Metrics
-- DAU/WAU of creators and listeners
-- Uploads per active user per week
-- Challenge participation rate and retention across sprints
-- Moderation incidents per 1,000 uploads (downward trend)
-
-Safeguards
-- Strict CORS, JWT auth, file size/type validation
-- Rate limiting and timeouts; secrets via env; HTTPS in prod
-
-Call to Action
-- Try it: http://localhost:3000 (dev) or deployed URL
-- API: http://localhost:8080/health and /api/v1/*
-- Docs: See .junie/guidelines.md and docs/Stakeholder_Project_Outline.md
-
-Contacts
-- Product/PM: TBD
-- Engineering Lead: TBD
-- Support: support@uploadparty.local

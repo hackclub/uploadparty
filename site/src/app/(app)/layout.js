@@ -1,4 +1,4 @@
-import SubmissionForm from "../../components/shared/submissionForm";
+import SubmissionForm from "../components/shared/submissionForm";
 
 export const metadata = {
   title: "App | UploadParty",

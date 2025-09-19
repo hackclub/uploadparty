@@ -7,7 +7,7 @@ export default function Header() {
       <div className="flex justify-between w-full h-full px-5">
         {/* Left group */}
         <div className="pointer-events-auto flex flex-row items-center gap-4 md:gap-6 isolation-isolate">
-          <Link href="/" className="font-semibold text-lg leading-none tracking-tight">
+          <Link href="/site/public" className="font-semibold text-lg leading-none tracking-tight">
             UploadParty
           </Link>
           <span className="hidden sm:inline-block rounded-full border border-black/20 px-2 py-1 text-xs">

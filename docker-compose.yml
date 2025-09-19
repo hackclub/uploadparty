@@ -77,7 +77,7 @@ services:
       NI_API_URL: ${NI_API_URL:-https://api.native-instruments.com}
       
       # Security
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-https://uploadparty.hackclub.com}
     ports:
       - "8080:8080"
     depends_on:

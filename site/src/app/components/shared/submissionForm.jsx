@@ -51,7 +51,7 @@ export default function SubmissionForm() {
         </button>
 
         <div className="px-3 py-4 border-b border-black/5 dark:border-white/10">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/site/public" className="flex items-center gap-3">
             <div className="h-6 w-6 rounded bg-black/10 dark:bg-white/10" aria-hidden />
             <span className={`${open ? "block" : "hidden"} text-base font-semibold tracking-tight`}>
               UploadParty

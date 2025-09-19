@@ -1,11 +1,11 @@
 # UploadParty – Project Guidelines for Junie (Full‑Stack: Go Gin + Next.js)
 
-These guidelines tell Junie how to work within this repository as a full‑stack engineer building a music‑focused platform application. The backend is Go (Gin) with Postgres, Redis, and AWS S3; the frontend is Next.js (App Router).
+These guidelines tell Junie how to work within this repository as a full‑stack engineer building a music‑focused platform application. The backend is Go (Gin) with Postgres, Redis, and AWS S3; the frontend is Next.js (App Router). Important: Junie must re-read this guidelines document at the start of every request to ensure all actions follow the latest project rules.
 
 ## Tech Stack at a glance
 - Backend: Go (Gin), GORM, PostgreSQL, Redis, JWT auth, CORS, file upload limits, Dockerized
-- Frontend: Next.js 15 (App Router) with React 19, Tailwind CSS 4
-- Storage/Infra: AWS S3 (uploads), optional Nginx reverse proxy (prod), Docker Compose for local stack
+- Frontend: Next.js 15 (App Router) with React 19; styling framework is optional. If the user asks, Junie should write unique, handcrafted CSS on demand.
+- Storage/Infra: Coolify (app hosting and persistent volumes with lots of storage), AWS S3 (optional for object storage/uploads), optional Nginx reverse proxy (prod), Docker Compose for local stack
 
 ## Project structure
 - backend/
@@ -36,6 +36,24 @@ Before writing any code, read these docs end-to-end to understand intent, scope,
 - site/package.json — scripts and framework versions
 - site/src/app/* — layouts/pages to understand routing boundaries
 If anything conflicts or is unclear, pause coding and ask for clarification before making changes.
+
+Note: The exact design of the authenticated area (after-auth experience) is not finalized yet. When making assumptions or scaffolding routes/components inside site/src/app/(app)/, consult docs/OnePager.md to ground decisions in the current product concept.
+
+## Full‑Stack application requirements (implementation checklist)
+- Backend (Gin/Golang)
+  - Use Gin with high‑performance routing (radix tree via httprouter) and a small memory footprint.
+  - Add middleware chain examples: Logger, Recovery, CORS, Auth (JWT), rate limiters, request size/timeouts. Groups: /api/v1, /auth, and protected routes.
+  - Demonstrate JSON validation and binding (query, form, multipart). Return validation errors with clear messages.
+  - Support multiple renderers where appropriate (JSON primary; optionally XML/YAML/ProtoBuf for examples).
+  - Ensure crash‑free behavior with gin.Recovery() and panic safety in handlers.
+- Frontend (Next.js/React)
+  - Build with Next.js App Router (React Server Components by default). Use client components only where necessary.
+  - Implement pages and UI as React components. Styling is framework-agnostic; if the user asks, write unique, handcrafted CSS. Tailwind is optional.
+- Integration (Full‑Stack Connection)
+  - The Next.js app should call the Gin API (e.g., GET /health, POST /api/v1/example) to demonstrate SSR/ISR/fetch patterns.
+  - Respect CORS by aligning FRONTEND_URL with the running frontend origin.
+
+Note on storage and hosting: We deploy on Coolify and use its persistent volumes with lots of storage for media/uploads. S3 remains optional for object storage and CDN workflows; choose based on environment and cost/perf needs.
 
 ## Environment variables
 The backend loads from .env (if present) or process env.
@@ -92,6 +110,7 @@ CORS: The API reads FRONTEND_URL for allowed origins. Ensure it matches your fro
 - Backend (binary): from backend/, run `go build -o bin/server ./cmd/server`
 - Frontend: from site/, run `npm run build` then `npm start`
 - Nginx (optional): docker compose up -d nginx to serve combined frontend/API behind reverse proxy
+- Coolify (recommended hosting): Deploy API and frontend as Coolify apps. Attach a persistent volume (large capacity) to the API for uploads at ./uploads. Configure env vars via Coolify UI (match those in backend/config/config.go).
 
 ## Testing
 - Go: place tests alongside code (xxx_test.go). Run from backend/ with `go test ./...`
@@ -111,7 +130,7 @@ CORS: The API reads FRONTEND_URL for allowed origins. Ensure it matches your fro
   - Health: GET /health
 - Frontend
   - Next.js App Router. Keep server/client component boundaries clear. Only use "use client" where required.
-  - Tailwind CSS 4; avoid custom CSS unless needed.
+  - Styling: Framework-agnostic. If the user asks, write unique, handcrafted CSS; Tailwind is optional and not required.
   - Scripts (site/package.json):
     - dev: next dev --turbopack
     - build: next build --turbopack
@@ -120,8 +139,10 @@ CORS: The API reads FRONTEND_URL for allowed origins. Ensure it matches your fro
 
 ## Media and uploads
 - Large file uploads are expected (music). Middleware already limits request sizes and content types.
-- For persistent storage, prefer streaming directly to S3 from the API, or use a temp dir (mounted at ./uploads) then upload to S3 and delete local temp files.
+- Storage strategy: We will use Coolify with a persistent volume that provides lots of storage for media. Mount the volume to the API at ./uploads. In production, this is the primary durable storage. S3 is optional and can be used for object storage/CDN workflows; when enabled, stream directly to S3 or stage to ./uploads and then upload, followed by cleanup.
+- Local/dev: Use the ./uploads directory (created automatically or mounted via Docker) to emulate production storage behavior.
 - Keep max body size and allowed MIME types in sync between frontend and backend.
+- Prefer streaming and non‑blocking I/O; avoid holding entire files in memory; ensure temporary files are removed after successful uploads.
 
 ## Security
 - Never commit real secrets. Use .env locally; use environment injection in CI/CD.
@@ -166,3 +187,47 @@ CORS: The API reads FRONTEND_URL for allowed origins. Ensure it matches your fro
 - Prefer non-blocking I/O and streaming for uploads; avoid long CPU-bound work in request handlers. Offload heavy tasks to background workers where feasible.
 - Monitor and optimize DB usage (connection pooling via GORM/Postgres) and cache hot paths with Redis when appropriate.
 - For local/dev load checks, use lightweight tools (e.g., hey, autocannon) to simulate ~100 concurrent requests to critical endpoints (health, auth/login, representative GET/POST flows).
+
+
+## Frontend routing architecture and auth boundary
+To keep the frontend clean and predictable, we enforce a clear separation between the public (pre‑auth) experience and the authenticated application area.
+
+- Public (pre‑auth) landing:
+  - Path: site/src/app/page.js
+  - Purpose: Marketing/landing page and any public content visible before authentication.
+  - Notes: Prefer React Server Components where possible. Avoid unnecessary "use client". Keep bundles small and cacheable. No auth required.
+
+- Authenticated application:
+  - Path: site/src/app/(app)/
+  - Purpose: The signed‑in experience (e.g., dashboard, settings, uploads). This group has its own layout file at site/src/app/(app)/layout.js.
+  - Routing: All routes inside (app) are considered protected and should assume an authenticated user context.
+  - Data fetching: Use server components by default; elevate to client components only for interactive UI pieces.
+
+- Directory and routing conventions:
+  - Root route / is public (site/src/app/page.js).
+  - Grouped routes under (app) reflect the authenticated area with its own layout and navigation.
+  - You may optionally introduce a (public) group for additional public sections if needed, but the root landing remains at page.js.
+
+- Auth boundary (recommended pattern):
+  - Implement auth checks at the boundary of (app). Common options:
+    - Next.js Middleware (site/src/middleware.ts) to redirect unauthenticated users away from /(app) to / (or /auth/login).
+    - Layout‑level guard within site/src/app/(app)/layout.js that checks session/JWT on the server and redirects if missing.
+  - Ensure redirects are fast and avoid client‑side flashes. Prefer server‑side checks.
+
+- API integration from both sides:
+  - Public pages can call read‑only endpoints (e.g., GET /health) and should respect CORS.
+  - Authenticated routes call protected API endpoints with credentials (cookies or Authorization: Bearer <token>), following the backend’s /api/v1 and /auth grouping.
+
+- Styling conventions:
+  - Framework‑agnostic; when the user asks, write unique, handcrafted CSS. Tailwind is optional, not required.
+
+- Example mental model:
+  - Public: “What is UploadParty?” → site/src/app/page.js
+  - Authenticated: “Do the work” → site/src/app/(app)/* (dashboard, settings, uploads)
+
+- Status of post‑auth UX:
+  - The exact after‑auth experience is not finalized yet. Use docs/OnePager.md to ground assumptions about user goals, flows, and scope until detailed specs are provided.
+
+## FAQ: Gin performance and reflection
+Q: Does the Gin Web Framework achieve its improved performance by avoiding the use of reflection?
+A: Gin’s high performance primarily comes from its use of a radix tree router (via httprouter) and keeping the hot path allocation‑free. Routing and handler dispatch do not rely on reflection. However, Gin’s request binding/validation helpers (e.g., ShouldBindJSON, form/multipart binding) use Go reflection to map payloads to structs. In short: Gin minimizes reflection on the hot path (routing), but it does use reflection for binding/validation when you opt into those features.
