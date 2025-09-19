@@ -56,6 +56,7 @@ RUN apk update && apk add --no-cache \
     ca-certificates \
     tzdata \
     wget \
+    curl \
     && rm -rf /var/cache/apk/* \
     && update-ca-certificates
 
@@ -86,7 +87,7 @@ EXPOSE 8080 3000
 
 # Healthcheck for backend (frontend served on 3000)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # Start both processes: backend (8080) and Next.js (3000)
 CMD ["sh", "-c", "PORT=8080 ./main & sleep 2 && (cd site && node node_modules/next/dist/bin/next start -p 3000) & wait"]
