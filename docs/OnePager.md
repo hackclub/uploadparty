@@ -46,4 +46,4 @@ Milestones
 - M3 Social: Likes/comments, basic feed
 - M4 Challenges: Create/list/submit, scoring, winners
 - M5 Beta Hardening: Rate limits, timeouts, telemetry, docs (Fully complete before: Friday, October 10, 2025)
-- M6 Hackatime Extension: Build an extension/integration with https://hackatime.hackclub.com that links time-tracked activity to the user’s VST workflow (e.g., deep-link from activity to open the relevant VST/project).
+- M6 VST3 Hackatime Extension: Build an extension/integration with https://hackatime.hackclub.com that links time-tracked activity to the user’s VST workflow (e.g., deep-link from activity to open the relevant VST/project).

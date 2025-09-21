@@ -2,65 +2,56 @@ package controllers
 
 import (
 	"net/http"
-	"uploadparty/internal/services"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
+	"github.com/uploadparty/app/backend/internal/services"
 )
 
 type AuthController struct {
-	authService *services.AuthService
+	Users *services.UserService
 }
 
-func NewAuthController(authService *services.AuthService) *AuthController {
-	return &AuthController{
-		authService: authService,
-	}
+func NewAuthController(db *gorm.DB, secret string) *AuthController {
+	return &AuthController{Users: services.NewUserService(db, secret)}
 }
 
-func (ac *AuthController) Register(c *gin.Context) {
-	var req services.RegisterRequest
+type registerReq struct {
+	Email    string `json:"email" binding:"required,email"`
+	Username string `json:"username" binding:"required,alphanum,min=3,max=20"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type loginReq struct {
+	Identifier string `json:"identifier" binding:"required"` // email or username
+	Password   string `json:"password" binding:"required"`
+}
+
+func (a *AuthController) Register(c *gin.Context) {
+	var req registerReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	response, err := ac.authService.Register(&req)
+	u, err := a.Users.Register(req.Email, req.Username, req.Password)
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusCreated, response)
+	c.JSON(http.StatusCreated, gin.H{"id": u.ID, "email": u.Email, "username": u.Username})
 }
 
-func (ac *AuthController) Login(c *gin.Context) {
-	var req services.LoginRequest
+func (a *AuthController) Login(c *gin.Context) {
+	var req loginReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	response, err := ac.authService.Login(&req)
+	token, user, err := a.Users.Authenticate(req.Identifier, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
-
-	c.JSON(http.StatusOK, response)
-}
-
-func (ac *AuthController) GetProfile(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-		return
-	}
-
-	user, err := ac.authService.GetUserByID(userID.(string))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{"token": token, "user": gin.H{"id": user.ID, "email": user.Email, "username": user.Username}})
 }
