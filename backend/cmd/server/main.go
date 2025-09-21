@@ -68,14 +68,7 @@ func main() {
 	api := r.Group("/api/v1")
 	api.Use(jwt.RequireAuth())
 	{
-		// --- Legacy endpoints (deprecated): keep temporarily for backward compatibility ---
-		api.GET("/projects", projCtl.ListMine)
-		api.POST("/projects", projCtl.Upsert)                         // DEPRECATED: use /api/v1/ingest/projects
-		api.PATCH("/projects/:id/complete", projCtl.MarkComplete)     // available in both /app and /ingest
-		api.GET("/projects/:id/plugins", pluginCtl.ListByProject)     // DEPRECATED: use /api/v1/app/projects/:id/plugins
-		api.POST("/projects/:id/plugins", pluginCtl.UpsertForProject) // DEPRECATED: use /api/v1/ingest/projects/:id/plugins
-
-		// --- New separated groups ---
+		// --- Separated groups ---
 		// VST/plugin ingestion endpoints: heartbeat/metadata and plugin upserts.
 		ingest := api.Group("/ingest")
 		{

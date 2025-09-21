@@ -37,4 +37,3 @@ To make it clear which clients call which endpoints, API v1 is split by client t
 - Public (no auth):
   - GET /profiles/:handle — Public profile and public projects
 
-Backward compatibility: legacy routes under /api/v1 (without /app or /ingest) are still available but deprecated and will be removed after the frontend and plugin are updated to the new paths.
