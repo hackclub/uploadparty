@@ -1,0 +1,106 @@
+include:
+  - docker-compose.yml
+
+services:
+  # Cloud SQL Auth Proxy (production)
+  cloudsql-proxy:
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.10.1
+    container_name: uploadparty-cloudsql-proxy
+    command:
+      - "--credentials-file=/app/secrets/gcp-service-account.json"
+      - "--address=0.0.0.0"
+      - "--port=5432"
+      - "${INSTANCE_CONNECTION_NAME}"
+    environment:
+      - INSTANCE_CONNECTION_NAME=${INSTANCE_CONNECTION_NAME}
+    volumes:
+      - ./secrets:/app/secrets:ro
+    ports:
+      - "5434:5432"
+    networks:
+      - uploadparty-network
+    restart: unless-stopped
+
+  # Backend API (production)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uploadparty-api
+    environment:
+      # Database (Cloud SQL via proxy)
+      DB_HOST: cloudsql-proxy
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_SSL_MODE: disable
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+
+      # Redis
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+
+      # Server
+      PORT: 8080
+      GIN_MODE: release
+
+      # Google Cloud Storage (GCS)
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID}
+      GCS_BUCKET: ${GCS_BUCKET}
+      GOOGLE_APPLICATION_CREDENTIALS: /app/secrets/gcp-service-account.json
+
+      # External license directory (generic)
+      LICENSES_PROVIDER: ${LICENSES_PROVIDER:-none}
+      LICENSES_TOKEN: ${LICENSES_TOKEN:-}
+      LICENSES_DSN: ${LICENSES_DSN:-}
+
+      # Security
+      FRONTEND_URL: ${FRONTEND_URL}
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      cloudsql-proxy:
+        condition: service_started
+    networks:
+      - uploadparty-network
+    volumes:
+      - ./uploads:/app/uploads
+      - ./secrets:/app/secrets:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  # Frontend override for production (Next.js)
+  frontend:
+    image: node:20-alpine
+    container_name: uploadparty-frontend
+    working_dir: /app
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${API_URL}
+    volumes:
+      - ./site:/app
+    command: sh -c "npm ci && npm run build && npm run start"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - uploadparty-network
+    restart: unless-stopped
+
+networks:
+  uploadparty-network:
+    driver: bridge
