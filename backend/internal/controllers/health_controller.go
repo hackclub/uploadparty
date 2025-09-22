@@ -12,6 +12,10 @@ type HealthController struct{ DB *gorm.DB }
 func NewHealthController(db *gorm.DB) *HealthController { return &HealthController{DB: db} }
 
 func (h *HealthController) Health(c *gin.Context) {
+	if h.DB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "degraded", "db": "not connected"})
+		return
+	}
 	var one int
 	if err := h.DB.Raw("SELECT 1").Scan(&one).Error; err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "degraded", "db": err.Error()})

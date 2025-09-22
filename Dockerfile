@@ -90,4 +90,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
 # Start both processes: backend (8080) and Next.js (3000)
-CMD ["sh", "-c", "PORT=8080 ./main & sleep 2 && (cd site && node node_modules/next/dist/bin/next start -p 3000) & wait"]
+CMD ["sh", "-c", "./main & sleep 2 && (cd site && node node_modules/next/dist/bin/next start -p 3000) & wait"]

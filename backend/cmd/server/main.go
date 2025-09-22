@@ -41,10 +41,16 @@ func main() {
 
 	database, err := db.Connect(cfg)
 	if err != nil {
-		log.Fatalf("db connect error: %v", err)
+		log.Fatalf("[FATAL] db connect error at startup: %v", err)
 	}
+	// Ensure DB is actually reachable by executing a simple query.
+	var one int
+	if err := database.Raw("SELECT 1").Scan(&one).Error; err != nil {
+		log.Fatalf("[FATAL] db ping failed: %v", err)
+	}
+	// Optional: keep AutoMigrate for now to ensure schema exists in dev. Fail fast if it errors
 	if err := database.AutoMigrate(&models.User{}, &models.Project{}, &models.Plugin{}); err != nil {
-		log.Fatalf("db migrate error: %v", err)
+		log.Fatalf("[FATAL] db migrate error at startup: %v", err)
 	}
 
 	// Initialize external license store (generic). Fail closed to no-op if misconfigured.
@@ -102,7 +108,9 @@ func main() {
 		port = p
 	}
 	addr := ":" + port
-	log.Printf("listening on %s", addr)
+	BackendURL := "http://localhost" + addr
+	log.Println("listening on", BackendURL)
+	log.Printf("frontend URL: %s", cfg.FrontendURL)
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatal(err)
 	}
