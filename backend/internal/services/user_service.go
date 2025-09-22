@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/uploadparty/app/backend/internal/models"
+	"github.com/uploadparty/app/internal/models"
 )
 
 type UserService struct {

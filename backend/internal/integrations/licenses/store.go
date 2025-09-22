@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/uploadparty/app/backend/config"
+	"github.com/uploadparty/app/config"
 )
 
 // LicenseStore is an abstraction over the external license directory.

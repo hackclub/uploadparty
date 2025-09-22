@@ -10,11 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 
-	"github.com/uploadparty/app/backend/config"
-	"github.com/uploadparty/app/backend/internal/controllers"
-	"github.com/uploadparty/app/backend/internal/middlewares"
-	"github.com/uploadparty/app/backend/internal/models"
-	"github.com/uploadparty/app/backend/pkg/db"
+	"github.com/uploadparty/app/config"
+	"github.com/uploadparty/app/internal/controllers"
+	"github.com/uploadparty/app/internal/integrations/licenses"
+	"github.com/uploadparty/app/internal/middlewares"
+	"github.com/uploadparty/app/internal/models"
+	"github.com/uploadparty/app/pkg/db"
 )
 
 func main() {
@@ -46,6 +47,11 @@ func main() {
 		log.Fatalf("db migrate error: %v", err)
 	}
 
+	// Initialize external license store (generic). Fail closed to no-op if misconfigured.
+	if err := licenses.Init(cfg); err != nil {
+		log.Println("[licenses] init failed; external license lookups disabled")
+	}
+
 	jwt := middlewares.NewJWT(cfg.JWTSecret)
 
 	healthCtl := controllers.NewHealthController(database)
@@ -56,6 +62,8 @@ func main() {
 
 	// Health
 	r.GET("/health", healthCtl.Health)
+	// Public alias for health under /api to work behind proxies
+	r.GET("/api/health", healthCtl.Health)
 
 	// Auth group
 	auth := r.Group("/auth")

@@ -49,9 +49,9 @@ Upload Party handles sensitive user data including personal information, audio f
 ### 7. File Upload Security
 - File type validation (audio files only)
 - File size limits
-- Virus scanning (to be implemented with AWS S3)
+- Virus scanning (to be implemented with Cloud Storage or a scanning service)
 - Secure file naming to prevent path traversal
-- Direct upload to S3 with signed URLs
+- Direct upload to Google Cloud Storage (GCS) with signed URLs
 
 ### 8. Container Security
 - Non-root user in Docker containers
@@ -62,7 +62,9 @@ Upload Party handles sensitive user data including personal information, audio f
 
 ### 9. Environment Security
 - Environment variables for all sensitive data
-- No hardcoded secrets in code
+- No hardcoded secrets in code (never commit credentials or API keys)
+- Use .env files for local/dev only; production secrets must be injected via the platform (Coolify, Docker secrets, etc.)
+- The backend automatically loads .env files if present (backend/.env and/or ./.env)
 - Separate production configurations
 - Secrets management best practices
 
@@ -78,12 +80,17 @@ JWT_SECRET=your-super-secure-jwt-secret-key-min-256-bits
 DB_PASSWORD=your-super-secure-production-db-password
 REDIS_PASSWORD=your-secure-redis-password
 
-# AWS credentials
-AWS_ACCESS_KEY_ID=your-production-aws-access-key
-AWS_SECRET_ACCESS_KEY=your-production-aws-secret-key
+# Google Cloud (GCS) configuration
+GCP_PROJECT_ID=your-gcp-project-id
+GCS_BUCKET=your-prod-gcs-bucket
+# Path inside container or host to service account JSON
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
 
-# API keys
-NI_API_KEY=your-production-ni-api-key
+# External license directory (generic)
+# Avoid provider-specific names in env to reduce information exposure
+LICENSES_PROVIDER=none
+LICENSES_TOKEN=
+LICENSES_DSN=
 ```
 
 ## Docker Security Configuration
@@ -213,3 +220,11 @@ For security questions or to report vulnerabilities, please contact: security@up
 
 **Last Updated:** 2025-01-01
 **Version:** 1.0
+
+
+## Secrets folder (local/dev)
+
+- This public repository includes a secrets/ directory that is git-ignored by default to help you keep sensitive files out of version control.
+- Place local-only secret files here, such as gcp-service-account.json and sample license files (licenses.token, licenses.dsn).
+- Docker Compose mounts ./secrets into the API container at /app/secrets (read-only). The default GOOGLE_APPLICATION_CREDENTIALS path is /app/secrets/gcp-service-account.json.
+- Never commit real secrets. Only *.example files and README.md inside secrets/ are tracked.

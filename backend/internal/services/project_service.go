@@ -5,9 +5,10 @@ import (
 	"errors"
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
-	"github.com/uploadparty/app/backend/internal/models"
+	"github.com/uploadparty/app/internal/models"
 )
 
 type ProjectService struct{ DB *gorm.DB }
@@ -36,7 +37,7 @@ func (s *ProjectService) UpsertByTitle(userID uint, in UpsertProjectInput) (*mod
 	p.PluginVersion = in.PluginVersion
 	p.DurationSeconds = in.DurationSeconds
 	if in.Metadata != nil {
-		p.Metadata = in.Metadata
+		p.Metadata = datatypes.JSON(in.Metadata)
 	}
 	if in.Public != nil {
 		p.Public = *in.Public

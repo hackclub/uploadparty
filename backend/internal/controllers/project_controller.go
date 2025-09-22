@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"github.com/uploadparty/app/backend/internal/services"
+	"github.com/uploadparty/app/internal/services"
 )
 
 type ProjectController struct{ Svc *services.ProjectService }

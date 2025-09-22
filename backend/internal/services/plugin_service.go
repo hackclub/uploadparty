@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
-	"github.com/uploadparty/app/backend/internal/models"
+	"github.com/uploadparty/app/internal/models"
 )
 
 type PluginService struct{ DB *gorm.DB }
@@ -47,7 +48,7 @@ func (s *PluginService) UpsertByName(userID, projectID uint, in UpsertPluginInpu
 	pl.Version = in.Version
 	pl.Format = in.Format
 	if in.Metadata != nil {
-		pl.Metadata = in.Metadata
+		pl.Metadata = datatypes.JSON(in.Metadata)
 	}
 	if pl.ID == 0 {
 		if err := s.DB.Create(&pl).Error; err != nil {

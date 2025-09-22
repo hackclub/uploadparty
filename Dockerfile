@@ -1,7 +1,7 @@
 # Multi-stage build for backend (Go) and frontend (Next.js)
 
 # --- Backend builder ---
-FROM golang:1.21-alpine AS gobuilder
+FROM golang:1.23-alpine AS gobuilder
 
 # Install required packages for Go build
 RUN apk update && apk add --no-cache \
