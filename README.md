@@ -27,6 +27,14 @@ Quick start (local dev without Docker):
 2) From backend/: go run ./cmd/server
 3) Health endpoint: http://localhost:8080/health
 
+Hot reload for backend (Air):
+- We use the maintained fork github.com/air-verse/air for Go hot reloading during development.
+- Install once: make air-install  (runs: go install github.com/air-verse/air@latest)
+- Run with reload: make api-air   (uses backend/.air.toml, loads backend/.env)
+- Notes:
+  - Ensure your DB/Redis are running (make db-up) and backend/.env is configured.
+  - Air watches backend/ and rebuilds on changes; it ignores tmp, vendor, node_modules.
+
 Docker Compose (multi-file):
 - Base file: docker-compose.yml (shared: redis, frontend, nginx, networks, volumes)
 - Development overrides: docker-compose.dev.yml (adds postgres-local, api wired to it)

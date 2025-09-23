@@ -19,7 +19,7 @@ export default function SkipAuthButton() {
   return (
     <button
       type="button"
-      onClick={() => router.push("/dashboard")}
+      onClick={() => router.push("/app")}
       className="fixed top-3 right-3 z-[60] rounded-full bg-emerald-600 text-white text-xs font-medium px-3 py-2 shadow hover:bg-emerald-500 active:bg-emerald-700 transition-colors"
       aria-label="Skip authentication and go to dashboard"
       title="Skip authentication (dev)"

@@ -1,7 +1,7 @@
 # Default environment file
 ENV_FILE ?= backend/.env
 
-.PHONY: help db-up db-down migrate migrate-dev migrate-list migrate-dry api dev prod deploy
+.PHONY: help db-up db-down migrate migrate-dev migrate-list migrate-dry api api-air air-install dev prod deploy
 
 help:
 	@echo "Useful commands:"
@@ -12,6 +12,8 @@ help:
 	@echo "  make migrate-list  # List migrations that would run"
 	@echo "  make migrate-dry   # Print SQL without executing"
 	@echo "  make api           # Run the Go API (from backend/)"
+	@echo "  make api-air       # Run the Go API with Air hot reload (from backend/)"
+	@echo "  make air-install   # Install air-verse/air locally"
 
 # Local DB using docker compose
  db-up:
@@ -36,6 +38,13 @@ help:
 # Run API locally
  api:
 	cd backend && go run ./cmd/server
+
+# Hot reload using Air (air-verse)
+ air-install:
+	go install github.com/air-verse/air@latest
+
+ api-air:
+	cd backend && air -c .air.toml
 
 # Compose wrappers
 # Development environment

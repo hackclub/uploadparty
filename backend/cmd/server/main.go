@@ -66,6 +66,13 @@ func main() {
 	pluginCtl := controllers.NewPluginController(database)
 	profCtl := controllers.NewProfileController(database, cfg.JWTSecret)
 
+	// Root welcome route to avoid 404 at /
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Hello, World!",
+		})
+	})
+
 	// Health
 	r.GET("/health", healthCtl.Health)
 	// Public alias for health under /api to work behind proxies

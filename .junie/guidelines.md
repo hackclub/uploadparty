@@ -1,16 +1,16 @@
 # UploadParty – Project Guidelines for Junie (Full‑Stack: Go Gin + Next.js)
 
-These guidelines tell Junie how to work within this repository as a full‑stack engineer building a music‑focused platform application. The backend is Go (Gin) with Postgres, Redis, and AWS S3; the frontend is Next.js (App Router). Important: Junie must re-read this guidelines document at the start of every request to ensure all actions follow the latest project rules.
+These guidelines tell Junie how to work within this repository as a full‑stack engineer building a music‑focused platform application. The backend is Go (Gin) with Postgres, Redis, and Google Cloud Storage; the frontend is Next.js (App Router). Important: Junie must re-read this guidelines document at the start of every request to ensure all actions follow the latest project rules.
 
 ## Tech Stack at a glance
 - Backend: Go (Gin), GORM, PostgreSQL, Redis, JWT auth, CORS, file upload limits, Dockerized
 - Frontend: Next.js 15 (App Router) with React 19; styling framework is optional. If the user asks, Junie should write unique, handcrafted CSS on demand.
-- Storage/Infra: Coolify (app hosting and persistent volumes with lots of storage), AWS S3 (optional for object storage/uploads), optional Nginx reverse proxy (prod), Docker Compose for local stack
+- Storage/Infra: Google Cloud Platform (app hosting and persistent volumes with lots of storage), Google Cloud Storage (primary for object storage/uploads), optional Nginx reverse proxy (prod), Docker Compose for local stack
 
 ## Project structure
 - backend/
   - cmd/server/main.go – Gin bootstrap, routes, middleware, server
-  - config/config.go – Loads env variables (DB, Redis, JWT, S3, server)
+  - config/config.go – Loads env variables (DB, Redis, JWT, GCS, server)
   - internal/ – controllers, services, middlewares, models
   - pkg/db/connection.go – Postgres connection via GORM + AutoMigrate
 - site/ (Next.js app)
@@ -53,7 +53,7 @@ Note: The exact design of the authenticated area (after-auth experience) is not 
   - The Next.js app should call the Gin API (e.g., GET /health, POST /api/v1/example) to demonstrate SSR/ISR/fetch patterns.
   - Respect CORS by aligning FRONTEND_URL with the running frontend origin.
 
-Note on storage and hosting: We deploy on Coolify and use its persistent volumes with lots of storage for media/uploads. S3 remains optional for object storage and CDN workflows; choose based on environment and cost/perf needs.
+Note on storage and hosting: We deploy on Google Cloud Platform and use Google Cloud Storage for primary media/upload storage. Google Cloud Storage provides scalable object storage and CDN workflows with cost-effective options.
 
 ## Environment variables
 The backend loads from .env (if present) or process env.
@@ -70,10 +70,9 @@ Minimum required for local dev without Docker:
 - FRONTEND_URL=http://localhost:3000
 - JWT_SECRET=change_me
 - REDIS_URL=redis://localhost:6379
-- AWS_REGION=us-east-1
-- AWS_ACCESS_KEY_ID=…
-- AWS_SECRET_ACCESS_KEY=…
-- AWS_S3_BUCKET=uploadparty-beats
+- GOOGLE_CLOUD_PROJECT=uploadparty-project
+- GOOGLE_CLOUD_STORAGE_BUCKET=uploadparty-beats
+- GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account-key.json
 - NI_API_KEY=… (if used)
 - NI_API_URL=https://api.native-instruments.com
 
@@ -110,7 +109,7 @@ CORS: The API reads FRONTEND_URL for allowed origins. Ensure it matches your fro
 - Backend (binary): from backend/, run `go build -o bin/server ./cmd/server`
 - Frontend: from site/, run `npm run build` then `npm start`
 - Nginx (optional): docker compose up -d nginx to serve combined frontend/API behind reverse proxy
-- Coolify (recommended hosting): Deploy API and frontend as Coolify apps. Attach a persistent volume (large capacity) to the API for uploads at ./uploads. Configure env vars via Coolify UI (match those in backend/config/config.go).
+- Google Cloud Platform (recommended hosting): Deploy API and frontend as Cloud Run services. Use Google Cloud Storage for primary file storage. Configure env vars via Cloud Run (match those in backend/config/config.go).
 
 ## Testing
 - Go: place tests alongside code (xxx_test.go). Run from backend/ with `go test ./...`
@@ -139,7 +138,7 @@ CORS: The API reads FRONTEND_URL for allowed origins. Ensure it matches your fro
 
 ## Media and uploads
 - Large file uploads are expected (music). Middleware already limits request sizes and content types.
-- Storage strategy: We will use Coolify with a persistent volume that provides lots of storage for media. Mount the volume to the API at ./uploads. In production, this is the primary durable storage. S3 is optional and can be used for object storage/CDN workflows; when enabled, stream directly to S3 or stage to ./uploads and then upload, followed by cleanup.
+- Storage strategy: We use Google Cloud Storage as the primary durable storage for media in production. For local development, use the ./uploads directory to emulate production storage behavior. When enabled, stream directly to Google Cloud Storage or stage to ./uploads and then upload, followed by cleanup.
 - Local/dev: Use the ./uploads directory (created automatically or mounted via Docker) to emulate production storage behavior.
 - Keep max body size and allowed MIME types in sync between frontend and backend.
 - Prefer streaming and non‑blocking I/O; avoid holding entire files in memory; ensure temporary files are removed after successful uploads.
@@ -163,7 +162,7 @@ CORS: The API reads FRONTEND_URL for allowed origins. Ensure it matches your fro
 ## Common troubleshooting
 - API can’t connect to DB: confirm DB_HOST/PORT/USER/PASSWORD/DB_NAME and that Postgres is healthy (docker ps, docker logs uploadparty-db).
 - CORS errors: FRONTEND_URL mismatch. Update env or config.
-- Uploads failing: check request size limits and MIME types in middlewares; verify S3 credentials and bucket name.
+- Uploads failing: check request size limits and MIME types in middlewares; verify Google Cloud Storage credentials and bucket name.
 - 401 on protected routes: ensure Authorization header has Bearer token from /auth/login response.
 
 ## What Junie should do before submitting any change
@@ -181,7 +180,7 @@ CORS: The API reads FRONTEND_URL for allowed origins. Ensure it matches your fro
 
 ## Performance and capacity targets
 - Concurrency baseline: The app must support at least 100 concurrent users at a time during normal operation without degradation of core flows (auth, uploads, feed, challenges).
-- Scalability: Treat this as a platform application. Design for horizontal scalability of the API (stateless services, shared nothing), durable object storage via S3 (multipart uploads, lifecycle policies), and the option to front media with a CDN.
+- Scalability: Treat this as a platform application. Design for horizontal scalability of the API (stateless services, shared nothing), durable object storage via Google Cloud Storage (multipart uploads, lifecycle policies), and the option to front media with a CDN.
 - Storage baseline: Expect to hold audio files for approximately 100 daily active users (DAU) initially; plan storage, egress, and cost controls accordingly.
 - When adding or modifying features, ensure middleware limits (timeouts, request size, rate limits) are respected and do not unnecessarily throttle legitimate traffic under this concurrency.
 - Prefer non-blocking I/O and streaming for uploads; avoid long CPU-bound work in request handlers. Offload heavy tasks to background workers where feasible.
