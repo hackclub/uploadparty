@@ -10,7 +10,32 @@ A modern, music‑focused platform for uploading beats and audio, running commun
 - Frontend: Next.js 15 (App Router) + React 19, Tailwind CSS 4
 - Storage/Infra: Google Cloud Storage (GCS), optional Nginx reverse proxy, Docker Compose for local
 
-## Environment configuration (no hardcoded secrets)
+## Environment configuration (centralized, no hardcoded secrets)
+
+We now use a single, centralized env file for local development at the repo root:
+
+- .env.example — canonical example. Copy to .env and customize for local dev.
+- .env — your real local dev file (git-ignored). Both the backend and frontend read from this.
+
+Details:
+- Backend (Gin): already loads .env from the repo root (and a few fallbacks). See backend/config/config.go.
+- Frontend (Next.js): site/next.config.mjs loads ../.env.local (preferred) or ../.env before the build runs, so any NEXT_PUBLIC_* and other envs are available.
+- site/.env.local and site/.env.production are deprecated and kept as stubs pointing to the root .env to prevent drift.
+
+Migration (do this once):
+1) Move any values from site/.env.local and site/.env.production into the repo-root .env (copy from .env.example first).
+2) Remove secrets from any per-app .env files. The central .env will be used by both apps in dev.
+3) For production, set env vars in your hosting platform (Cloud Run/Vercel/etc.). Do not commit production secrets.
+
+Common vars (examples; see .env.example for the full list):
+- NEXT_PUBLIC_SITE_URL=http://localhost:3000
+- AUTH0_BASE_URL=http://localhost:3000
+- AUTH0_ISSUER_BASE_URL=https://your-tenant.us.auth0.com
+- AUTH0_CLIENT_ID=...
+- AUTH0_CLIENT_SECRET=...
+- DB_HOST=localhost, DB_PORT=5432, DB_USER=uploadparty, DB_NAME=uploadparty_db
+- FRONTEND_URL=http://localhost:3000 (backend CORS origin)
+- JWT_SECRET=change_me (set a strong value outside dev)
 
 ### Secrets and external integrations (public repo safe)
 - For optional external integrations (such as a license directory), see secrets/README.md for local/dev guidance.
@@ -23,9 +48,10 @@ A modern, music‑focused platform for uploading beats and audio, running commun
 - Examples are provided in secrets/*.example — copy them, fill locally, and never commit real secrets.
 
 Quick start (local dev without Docker):
-1) Copy backend/.env.example to backend/.env and edit values (especially DB_PASSWORD and JWT_SECRET).
-2) From backend/: go run ./cmd/server
-3) Health endpoint: http://localhost:8080/health
+1) Copy .env.example to .env at the repo root and edit values (especially DB_PASSWORD and JWT_SECRET).
+2) Backend: from backend/: go run ./cmd/server
+3) Frontend: from site/: npm install && npm run dev
+4) API health endpoint: http://localhost:8080/health
 
 Hot reload for backend (Air):
 - We use the maintained fork github.com/air-verse/air for Go hot reloading during development.

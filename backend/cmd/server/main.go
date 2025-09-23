@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -109,6 +110,20 @@ func main() {
 
 	// Public profiles
 	r.GET("/profiles/:handle", profCtl.GetPublicProfile)
+
+	// Serve static frontend files (for Cloud Run single-service deployment)
+	r.Static("/static", "./site/.next/static")
+	r.StaticFile("/favicon.ico", "./site/public/favicon.ico")
+	// Catch-all for Next.js routes - serve index.html
+	r.NoRoute(func(c *gin.Context) {
+		path := c.Request.URL.Path
+		// Only serve HTML for non-API routes
+		if path != "/health" && !strings.HasPrefix(path, "/api/") && !strings.HasPrefix(path, "/auth/") {
+			c.File("./site/public/index.html")
+		} else {
+			c.JSON(404, gin.H{"error": "route not found"})
+		}
+	})
 
 	port := cfg.Port
 	if p := os.Getenv("PORT"); p != "" {

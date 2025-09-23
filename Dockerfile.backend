@@ -1,0 +1,54 @@
+# Cloud Run optimized backend-only build
+FROM golang:1.23-alpine AS builder
+
+RUN apk update && apk add --no-cache \
+    ca-certificates \
+    git \
+    tzdata \
+    && rm -rf /var/cache/apk/*
+
+RUN adduser -D -g '' appuser
+
+WORKDIR /app
+
+# Copy go mod/sum and download deps
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download && go mod verify
+
+# Copy backend source code and build
+COPY backend/ .
+RUN go mod tidy && go mod download && go mod verify
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -a -installsuffix cgo \
+    -o main cmd/server/main.go
+
+# Final runtime image
+FROM alpine:latest
+
+RUN apk update && apk add --no-cache \
+    ca-certificates \
+    tzdata \
+    curl \
+    && rm -rf /var/cache/apk/* \
+    && update-ca-certificates
+
+RUN adduser -D -g '' appuser
+
+WORKDIR /app
+
+# Copy backend binary
+COPY --from=builder /app/main /app/main
+
+RUN chown -R appuser:appuser /app
+USER appuser
+
+# Expose only backend port
+EXPOSE 8080
+
+# Healthcheck for backend
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Start only backend process
+CMD ["./main"]
