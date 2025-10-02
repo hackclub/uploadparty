@@ -1,0 +1,35 @@
+steps:
+  # Build the unified full-stack container
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA', '.']
+    timeout: 1200s
+
+  # Push the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'uploadparty'
+      - '--image=gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA'
+      - '--platform=managed'
+      - '--region=us-central1'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=GIN_MODE=release,FRONTEND_URL=https://uploadparty-PROJECT_ID.a.run.app'
+      - '--port=8080'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--max-instances=10'
+
+options:
+  # Use a machine with more resources for the build
+  machineType: 'E2_HIGHCPU_8'
+  # Increase timeout for full-stack build
+  timeout: '1200s'
+
+images:
+  - 'gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA'
