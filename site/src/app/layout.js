@@ -1,10 +1,9 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SkipAuthButton from "./components/SkipAuthButton";
-import Header from "./components/shared/Header";
-import ServerErrorBoundary from "./components/ServerErrorBoundary";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { UserProvider } from '@auth0/nextjs-auth0/client';
+import ServerErrorBoundary from "./components/ServerErrorBoundary";
+import { Auth0Provider } from "@auth0/nextjs-auth0";
 import { headers } from "next/headers";
 import { isMobileUserAgent } from "./lib/hooks/utils";
 
@@ -70,12 +69,12 @@ export default async function RootLayout({ children }) {
         data-ua-mobile={uaMobile ? "true" : "false"}
       >
         <ErrorBoundary>
-          <UserProvider>
+          <Auth0Provider>
             <ServerErrorBoundary>
               {children}
               <SkipAuthButton />
             </ServerErrorBoundary>
-          </UserProvider>
+          </Auth0Provider>
         </ErrorBoundary>
       </body>
     </html>
