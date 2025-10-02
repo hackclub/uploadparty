@@ -15,6 +15,15 @@ if (existsSync(rootEnvLocal)) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // No need to manually expose NEXT_PUBLIC_*; Next automatically inlines them.
+  
+  // Enable faster refresh and better error handling
+  reactStrictMode: true,
+  
+  // Turbopack optimizations (when using --turbopack flag)
+  experimental: {
+    // Optimize package imports for faster builds
+    optimizePackageImports: ['react', 'react-dom'],
+  }
 };
 
 export default nextConfig;

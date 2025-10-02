@@ -113,24 +113,24 @@ jspm_packages/
 # Go workspace file
 go.work
 
-docs
+# Secrets (keep local development files only)
+secrets/*.json
+secrets/*.key
+secrets/*.pem
+!secrets/*.example
 
-# nginx scripts and configurations
-nginx/
-nginx.conf
-nginx.local.conf
-nginx.production.conf
-*.nginx.conf
+# Build artifacts and temporary files
+backend/cmd/*/server
+backend/cmd/*/migrate
+backend/migrate
+backend/server
+backend/tmp/
+site/.next/
+site/out/
 
-# Test files and directories
-test/
-backend/tests/
-*_test.go
-*.test.js
-*.spec.js
-*.test.ts
-*.spec.ts
-test_*
-*_test_*
-testing/
-__tests__/
+# Test outputs and coverage
+*.out
+coverage/
+test-results/
+playwright-report/
+test-coverage/

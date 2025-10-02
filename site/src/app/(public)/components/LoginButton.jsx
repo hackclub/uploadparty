@@ -73,16 +73,34 @@ export default function LoginButton() {
     );
   }
 
+  // Check if bypass mode is enabled (client-side access to env vars requires NEXT_PUBLIC_ prefix in production)
+  const bypassAuth = process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && window.location.search.includes('bypass=true');
+
   return (
     <div className="flex flex-col items-center gap-4">
+      {bypassAuth && (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-lg mb-4">
+          <p className="text-sm font-medium">⚠️ Auth Bypass Mode Active (Development)</p>
+        </div>
+      )}
       <h3>Ready to join UploadParty?</h3>
       <p>Sign in to access the platform and start uploading your beats!</p>
-      <a 
-        href="/api/auth/login" 
-        className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors"
-      >
-        Sign In / Register
-      </a>
+      <div className="flex gap-4 flex-wrap justify-center">
+        <a 
+          href="/api/auth/login" 
+          className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors"
+        >
+          Sign In / Register
+        </a>
+        {process.env.NODE_ENV === 'development' && (
+          <a 
+            href="/app" 
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            Skip to App (Dev)
+          </a>
+        )}
+      </div>
     </div>
   );
 }
