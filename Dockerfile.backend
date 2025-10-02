@@ -40,15 +40,22 @@ WORKDIR /app
 # Copy backend binary
 COPY --from=builder /app/main /app/main
 
+# Make binary executable
+RUN chmod +x /app/main
+
 RUN chown -R appuser:appuser /app
 USER appuser
 
-# Expose only backend port
-EXPOSE 8080
+# Cloud Run automatically sets PORT, but default to 8080
+ENV PORT=8080
+ENV GIN_MODE=release
 
-# Healthcheck for backend
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Expose the port (Cloud Run will use the PORT env var)
+EXPOSE $PORT
 
-# Start only backend process
-CMD ["./main"]
+# Healthcheck for backend (disable for Cloud Run - it has its own)
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+#     CMD curl -f http://localhost:$PORT/health || exit 1
+
+# Start backend process with explicit logging
+CMD ["sh", "-c", "echo 'Starting server on port $PORT' && ./main"]

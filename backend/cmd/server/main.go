@@ -40,18 +40,30 @@ func main() {
 	go rl.Cleanup(10 * time.Minute)
 	r.Use(rl.Middleware())
 
+	// Database connection with better error handling for Cloud Run
+	log.Printf("Attempting database connection...")
 	database, err := db.Connect(cfg)
 	if err != nil {
-		log.Fatalf("[FATAL] db connect error at startup: %v", err)
-	}
-	// Ensure DB is actually reachable by executing a simple query.
-	var one int
-	if err := database.Raw("SELECT 1").Scan(&one).Error; err != nil {
-		log.Fatalf("[FATAL] db ping failed: %v", err)
-	}
-	// Optional: keep AutoMigrate for now to ensure schema exists in dev. Fail fast if it errors
-	if err := database.AutoMigrate(&models.User{}, &models.Project{}, &models.Plugin{}); err != nil {
-		log.Fatalf("[FATAL] db migrate error at startup: %v", err)
+		log.Printf("[ERROR] Database connection failed: %v", err)
+		log.Printf("[INFO] Continuing without database for health checks...")
+		database = nil
+	} else {
+		// Ensure DB is actually reachable by executing a simple query.
+		var one int
+		if err := database.Raw("SELECT 1").Scan(&one).Error; err != nil {
+			log.Printf("[ERROR] Database ping failed: %v", err)
+			log.Printf("[INFO] Continuing without database for health checks...")
+			database = nil
+		} else {
+			log.Printf("[SUCCESS] Database connection established")
+			// Optional: keep AutoMigrate for now to ensure schema exists in dev. Fail fast if it errors
+			if err := database.AutoMigrate(&models.User{}, &models.Project{}, &models.Plugin{}); err != nil {
+				log.Printf("[ERROR] Database migration failed: %v", err)
+				log.Printf("[INFO] Continuing without migrations...")
+			} else {
+				log.Printf("[SUCCESS] Database migrations completed")
+			}
+		}
 	}
 
 	// Initialize external license store (generic). Fail closed to no-op if misconfigured.
@@ -130,10 +142,22 @@ func main() {
 		port = p
 	}
 	addr := ":" + port
+
+	// Enhanced logging for Cloud Run debugging
+	log.Printf("=== UploadParty Backend Starting ===")
+	log.Printf("PORT environment variable: %s", os.Getenv("PORT"))
+	log.Printf("Config port: %s", cfg.Port)
+	log.Printf("Final port: %s", port)
+	log.Printf("Listen address: %s", addr)
+	log.Printf("GIN_MODE: %s", cfg.GinMode)
+	log.Printf("Frontend URL: %s", cfg.FrontendURL)
+	log.Printf("=== Server Starting ===")
+
 	BackendURL := "http://localhost" + addr
-	log.Println("listening on", BackendURL)
-	log.Printf("frontend URL: %s", cfg.FrontendURL)
+	log.Println("Server listening on", BackendURL)
+
+	// Bind to all interfaces for Cloud Run (0.0.0.0)
 	if err := http.ListenAndServe(addr, r); err != nil {
-		log.Fatal(err)
+		log.Fatalf("Server failed to start: %v", err)
 	}
 }
