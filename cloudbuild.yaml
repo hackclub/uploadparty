@@ -1,12 +1,12 @@
 steps:
   # Build the unified full-stack container
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/uploadparty:${COMMIT_SHA:-latest}', '.']
+    args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/uploadparty:latest', '.']
     timeout: 1200s
 
   # Push the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/uploadparty:latest']
 
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -15,7 +15,7 @@ steps:
       - 'run'
       - 'deploy'
       - 'uploadparty'
-      - '--image=gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA'
+      - '--image=gcr.io/$PROJECT_ID/uploadparty:latest'
       - '--platform=managed'
       - '--region=us-central1'
       - '--allow-unauthenticated'
@@ -33,4 +33,4 @@ options:
 timeout: '1200s'
 
 images:
-  - 'gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/uploadparty:latest'
