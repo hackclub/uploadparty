@@ -1,7 +1,7 @@
 steps:
   # Build the unified full-stack container
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA', '.']
+    args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/uploadparty:${COMMIT_SHA:-latest}', '.']
     timeout: 1200s
 
   # Push the container image
@@ -28,8 +28,9 @@ steps:
 options:
   # Use a machine with more resources for the build
   machineType: 'E2_HIGHCPU_8'
-  # Increase timeout for full-stack build
-  timeout: '1200s'
+
+# Global timeout for the entire build
+timeout: '1200s'
 
 images:
   - 'gcr.io/$PROJECT_ID/uploadparty:$COMMIT_SHA'
