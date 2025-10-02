@@ -76,18 +76,25 @@ COPY --from=webbuilder /web/public /app/site/public
 COPY --from=webbuilder /web/package.json /app/site/package.json
 COPY --from=webproddeps /web/node_modules /app/site/node_modules
 
+# Make binary executable
+RUN chmod +x /app/main
+
 # Ownership
 RUN chown -R appuser:appuser /app
 
 # Switch to non-root
 USER appuser
 
-# Expose backend and frontend ports
-EXPOSE 8080 3000
+# Cloud Run automatically sets PORT, but default to 8080 for backend
+ENV PORT=8080
+ENV GIN_MODE=release
 
-# Healthcheck for backend (frontend served on 3000)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Expose the port that Cloud Run will use (backend serves frontend static files)
+EXPOSE $PORT
 
-# Start both processes: backend (8080) and Next.js (3000)
-CMD ["sh", "-c", "./main & sleep 2 && (cd site && node node_modules/next/dist/bin/next start -p 3000) & wait"]
+# Healthcheck disabled for Cloud Run (it has its own)
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+#     CMD curl -f http://localhost:$PORT/health || exit 1
+
+# Start backend only - it now serves frontend static files via the NoRoute handler
+CMD ["sh", "-c", "echo 'Starting full-stack server on port $PORT' && ./main"]

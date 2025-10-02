@@ -8,12 +8,13 @@ import (
 )
 
 type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBSSLMode  string
+	DBHost                 string
+	DBPort                 string
+	DBUser                 string
+	DBPassword             string
+	DBName                 string
+	DBSSLMode              string
+	CloudSQLConnectionName string // Cloud SQL connection name for auth proxy
 
 	Port        string
 	GinMode     string
@@ -47,16 +48,17 @@ func Load() *Config {
 	}
 
 	cfg := &Config{
-		DBHost:      getEnv("DB_HOST", "localhost"),
-		DBPort:      getEnv("DB_PORT", "5432"),
-		DBUser:      getEnv("DB_USER", "uploadparty"),
-		DBPassword:  getEnv("DB_PASSWORD", "your_local_db_password"),
-		DBName:      getEnv("DB_NAME", "uploadparty_db"),
-		DBSSLMode:   getEnv("DB_SSL_MODE", "disable"),
-		Port:        getEnv("PORT", "8080"),
-		GinMode:     getEnv("GIN_MODE", "debug"),
-		FrontendURL: getEnv("FRONTEND_URL", "http://localhost:3000"),
-		JWTSecret:   getEnv("JWT_SECRET", "change_me"),
+		DBHost:                 getEnv("DB_HOST", "localhost"),
+		DBPort:                 getEnv("DB_PORT", "5432"),
+		DBUser:                 getEnv("DB_USER", "uploadparty"),
+		DBPassword:             getEnv("DB_PASSWORD", "your_local_db_password"),
+		DBName:                 getEnv("DB_NAME", "uploadparty_db"),
+		DBSSLMode:              getEnv("DB_SSL_MODE", "disable"),
+		CloudSQLConnectionName: getEnv("CLOUD_SQL_CONNECTION_NAME", ""),
+		Port:                   getEnv("PORT", "8080"),
+		GinMode:                getEnv("GIN_MODE", "debug"),
+		FrontendURL:            getEnv("FRONTEND_URL", "http://localhost:3000"),
+		JWTSecret:              getEnv("JWT_SECRET", "change_me"),
 		// Storage (GCS)
 		GCPProjectID:               getEnv("GCP_PROJECT_ID", ""),
 		GCSBucket:                  getEnv("GCS_BUCKET", "uploadparty-beats"),
