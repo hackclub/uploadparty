@@ -96,5 +96,5 @@ EXPOSE $PORT
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 #     CMD curl -f http://localhost:$PORT/health || exit 1
 
-# Start backend only - it now serves frontend static files via the NoRoute handler
-CMD ["sh", "-c", "echo 'Starting full-stack server on port $PORT' && ./main"]
+# Start frontend on port 8080, backend on 3001
+CMD ["sh", "-c", "cd /app/site && PORT=8080 npm start"]
