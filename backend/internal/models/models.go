@@ -11,12 +11,19 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	Email        string `gorm:"uniqueIndex;size:255" json:"email"`
+	// Auth0 fields for social login
+	Auth0ID string `gorm:"uniqueIndex;size:255" json:"auth0Id,omitempty"`
+	Email   string `gorm:"uniqueIndex;size:255" json:"email"`
+
+	// Username and password for legacy auth (optional with Auth0)
 	Username     string `gorm:"uniqueIndex;size:50" json:"username"`
 	PasswordHash string `json:"-"`
-	DisplayName  string `gorm:"size:100" json:"displayName"`
-	Bio          string `gorm:"size:280" json:"bio"`
-	Public       bool   `json:"public"`
+
+	// Profile fields
+	DisplayName string `gorm:"size:100" json:"displayName"`
+	Picture     string `gorm:"size:500" json:"picture,omitempty"`
+	Bio         string `gorm:"size:280" json:"bio"`
+	Public      bool   `json:"public"`
 }
 
 type ProjectStatus string

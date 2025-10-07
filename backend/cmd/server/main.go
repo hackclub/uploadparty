@@ -72,6 +72,7 @@ func main() {
 	}
 
 	jwt := middlewares.NewJWT(cfg.JWTSecret)
+	auth0 := middlewares.NewAuth0(cfg.Auth0Domain, cfg.Auth0Audience)
 
 	healthCtl := controllers.NewHealthController(database)
 	authCtl := controllers.NewAuthController(database, cfg.JWTSecret)
@@ -84,11 +85,21 @@ func main() {
 	// Public alias for health under /api to work behind proxies
 	r.GET("/api/health", healthCtl.Health)
 
-	// Auth group
+	// Auth group (public endpoints)
 	auth := r.Group("/auth")
 	{
 		auth.POST("/register", authCtl.Register)
 		auth.POST("/login", authCtl.Login)
+	}
+
+	// Auth0 sync endpoint (protected by Auth0 JWT)
+	// This endpoint is called by the frontend after Auth0 login to sync user info to our DB
+	authSync := r.Group("/api/v1/auth")
+	if cfg.Auth0Domain != "" {
+		authSync.Use(auth0.RequireAuth0())
+	}
+	{
+		authSync.POST("/sync", authCtl.SyncUser)
 	}
 
 	// API v1 protected (JWT). We now split routes by client type: /app (frontend) vs /ingest (VST/plugin)

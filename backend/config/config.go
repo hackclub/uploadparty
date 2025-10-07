@@ -21,6 +21,10 @@ type Config struct {
 	FrontendURL string
 	JWTSecret   string
 
+	// Auth0
+	Auth0Domain   string // e.g., "https://your-tenant.us.auth0.com"
+	Auth0Audience string // Optional: API identifier for token validation
+
 	// Storage (Google Cloud Storage)
 	GCPProjectID               string
 	GCSBucket                  string
@@ -59,6 +63,9 @@ func Load() *Config {
 		GinMode:                getEnv("GIN_MODE", "debug"),
 		FrontendURL:            getEnv("FRONTEND_URL", "http://localhost:3000"),
 		JWTSecret:              getEnv("JWT_SECRET", "change_me"),
+		// Auth0
+		Auth0Domain:   getEnv("AUTH0_ISSUER_BASE_URL", ""),
+		Auth0Audience: getEnv("AUTH0_AUDIENCE", ""),
 		// Storage (GCS)
 		GCPProjectID:               getEnv("GCP_PROJECT_ID", ""),
 		GCSBucket:                  getEnv("GCS_BUCKET", "uploadparty-beats"),
