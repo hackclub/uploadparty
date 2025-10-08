@@ -31,7 +31,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
 # --- Frontend dependencies (for build) ---
 FROM node:20-alpine AS webdeps
 WORKDIR /web
-COPY site/package*.json ./
+COPY app/package*.json ./
 # Full deps for build to avoid missing dev-time tools (like Tailwind/PostCSS)
 RUN npm ci
 
@@ -39,13 +39,13 @@ RUN npm ci
 FROM node:20-alpine AS webbuilder
 WORKDIR /web
 COPY --from=webdeps /web/node_modules ./node_modules
-COPY site/ .
+COPY app/ .
 RUN npm run build
 
 # --- Frontend production deps (runtime only) ---
 FROM node:20-alpine AS webproddeps
 WORKDIR /web
-COPY site/package*.json ./
+COPY app/package*.json ./
 RUN npm ci --omit=dev
 
 # --- Final runtime image: Node (for Next.js) + Go binary ---
@@ -70,7 +70,7 @@ WORKDIR /app
 COPY --from=gobuilder /app/main /app/main
 
 # Frontend app (copy only what's needed to run `next start`)
-RUN mkdir -p /app/site
+RUN mkdir -p /app/app
 COPY --from=webbuilder /web/.next /app/site/.next
 COPY --from=webbuilder /web/public /app/site/public
 COPY --from=webbuilder /web/package.json /app/site/package.json

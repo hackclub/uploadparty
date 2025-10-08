@@ -27,7 +27,7 @@ services:
       NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:8080}
       REACT_APP_API_URL: ${API_URL:-http://localhost:8080} # compatibility if needed
     volumes:
-      - ./site:/app
+      - ./app:/app
     command: sh -c "npm install && npm run dev"
     ports:
       - "3000:3000"

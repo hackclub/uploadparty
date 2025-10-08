@@ -128,14 +128,14 @@ func main() {
 	r.GET("/profiles/:handle", profCtl.GetPublicProfile)
 
 	// Serve static frontend files (for Cloud Run single-service deployment)
-	r.Static("/static", "./site/.next/static")
-	r.StaticFile("/favicon.ico", "./site/public/favicon.ico")
+	r.Static("/static", "./app/.next/static")
+	r.StaticFile("/favicon.ico", "./app/public/favicon.ico")
 	// Catch-all for Next.js routes - serve index.html
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
 		// Only serve HTML for non-API routes
 		if path != "/health" && !strings.HasPrefix(path, "/api/") && !strings.HasPrefix(path, "/auth/") {
-			c.File("./site/public/index.html")
+			c.File("./app/public/index.html")
 		} else {
 			c.JSON(404, gin.H{"error": "route not found"})
 		}

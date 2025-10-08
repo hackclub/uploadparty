@@ -125,8 +125,8 @@ backend/cmd/*/migrate
 backend/migrate
 backend/server
 backend/tmp/
-site/.next/
-site/out/
+app/.next/
+app/out/
 
 # Test outputs and coverage
 *.out
