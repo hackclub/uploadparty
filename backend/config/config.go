@@ -3,11 +3,13 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
+	Environment            string // "development", "production"
 	DBHost                 string
 	DBPort                 string
 	DBUser                 string
@@ -34,6 +36,24 @@ type Config struct {
 	LicensesProvider string // e.g., "airtable" or "none"
 	LicensesToken    string // generic bearer token or API key (keep secure)
 	LicensesDSN      string // opaque DSN string, e.g., "base=...;table=..."
+
+	// Email (SMTP)
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
+	FromEmail    string
+	FromName     string
+}
+
+// IsProduction returns true if running in production
+func (c *Config) IsProduction() bool {
+	return c.Environment == "production"
+}
+
+// IsDevelopment returns true if running in development
+func (c *Config) IsDevelopment() bool {
+	return c.Environment == "development"
 }
 
 func Load() *Config {
@@ -51,11 +71,18 @@ func Load() *Config {
 		log.Printf("[env] loaded %s", loaded)
 	}
 
+	// Detect environment - defaults to development if not set
+	env := getEnv("ENVIRONMENT", "development")
+	if env != "production" && env != "development" {
+		env = "development"
+	}
+
 	cfg := &Config{
+		Environment:            env,
 		DBHost:                 getEnv("DB_HOST", "localhost"),
 		DBPort:                 getEnv("DB_PORT", "5432"),
-		DBUser:                 getEnv("DB_USER", "uploadparty"),
-		DBPassword:             getEnv("DB_PASSWORD", "your_local_db_password"),
+		DBUser:                 getEnv("DB_USER", "postgres"),
+		DBPassword:             getEnv("DB_PASSWORD", "postgres"),
 		DBName:                 getEnv("DB_NAME", "uploadparty_db"),
 		DBSSLMode:              getEnv("DB_SSL_MODE", "disable"),
 		CloudSQLConnectionName: getEnv("CLOUD_SQL_CONNECTION_NAME", ""),
@@ -74,11 +101,18 @@ func Load() *Config {
 		LicensesProvider: getEnv("LICENSES_PROVIDER", "none"),
 		LicensesToken:    getEnv("LICENSES_TOKEN", ""),
 		LicensesDSN:      getEnv("LICENSES_DSN", ""),
+		// Email (SMTP)
+		SMTPHost:     getEnv("SMTP_HOST", "smtp.gmail.com"),
+		SMTPPort:     getEnvInt("SMTP_PORT", 587),
+		SMTPUsername: getEnv("SMTP_USERNAME", ""),
+		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
+		FromEmail:    getEnv("FROM_EMAIL", ""),
+		FromName:     getEnv("FROM_NAME", "UploadParty"),
 	}
 	if cfg.JWTSecret == "change_me" {
 		log.Println("[WARN] Using default JWT secret; set JWT_SECRET in env for non-dev")
 	}
-	if cfg.DBPassword == "your_local_db_password" || cfg.DBPassword == "" {
+	if cfg.DBPassword == "postgres" || cfg.DBPassword == "" {
 		log.Println("[WARN] Using default or empty DB password; set DB_PASSWORD in env for non-dev and production")
 	}
 	if cfg.GCSBucket == "" {
@@ -105,6 +139,15 @@ func tryLoadEnv(paths ...string) string {
 func getEnv(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
+	}
+	return def
+}
+
+func getEnvInt(key string, def int) int {
+	if v := os.Getenv(key); v != "" {
+		if i, err := strconv.Atoi(v); err == nil {
+			return i
+		}
 	}
 	return def
 }

@@ -6,6 +6,16 @@ import (
 	"gorm.io/datatypes"
 )
 
+type RSVP struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	Email  string `gorm:"uniqueIndex;size:255;not null" json:"email"`
+	UserID *uint  `gorm:"index" json:"userId,omitempty"`
+	User   *User  `gorm:"constraint:OnDelete:SET NULL" json:"user,omitempty"`
+}
+
 type User struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`

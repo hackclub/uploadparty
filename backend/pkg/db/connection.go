@@ -95,6 +95,57 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 	return db, nil
 }
 
+// CreateDatabaseIfNotExists creates the database if it doesn't exist (development only)
+func CreateDatabaseIfNotExists(cfg *config.Config) error {
+	if !cfg.IsDevelopment() {
+		return nil // Only create DB in development
+	}
+
+	log.Println("[DEV] Checking if database exists...")
+
+	// Connect to postgres database first to create the target database
+	var dsn string
+	if cfg.CloudSQLConnectionName != "" {
+		dsn = fmt.Sprintf("host=/cloudsql/%s user=%s password=%s dbname=postgres sslmode=disable TimeZone=UTC",
+			cfg.CloudSQLConnectionName, cfg.DBUser, cfg.DBPassword)
+	} else {
+		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s sslmode=%s TimeZone=UTC",
+			cfg.DBHost, cfg.DBUser, cfg.DBPassword, cfg.DBPort, cfg.DBSSLMode)
+	}
+
+	pgcfg := postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true,
+	}
+
+	db, err := gorm.Open(postgres.New(pgcfg), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Error), // Less verbose
+	})
+	if err != nil {
+		return fmt.Errorf("failed to connect to postgres database: %w", err)
+	}
+
+	// Check if database exists
+	var exists bool
+	err = db.Raw("SELECT EXISTS(SELECT datname FROM pg_catalog.pg_database WHERE datname = ?)", cfg.DBName).Scan(&exists).Error
+	if err != nil {
+		return fmt.Errorf("failed to check if database exists: %w", err)
+	}
+
+	if !exists {
+		log.Printf("[DEV] Creating database: %s", cfg.DBName)
+		err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", cfg.DBName)).Error
+		if err != nil {
+			return fmt.Errorf("failed to create database: %w", err)
+		}
+		log.Printf("[DEV] Database %s created successfully", cfg.DBName)
+	} else {
+		log.Printf("[DEV] Database %s already exists", cfg.DBName)
+	}
+
+	return nil
+}
+
 // sanitizeDSN removes password from DSN for logging
 func sanitizeDSN(dsn string) string {
 	// Simple password removal for logging (not perfect but good enough)

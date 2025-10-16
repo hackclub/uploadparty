@@ -21,6 +21,16 @@ import (
 
 func main() {
 	cfg := config.Load()
+
+	// Print environment information
+	log.Printf("=== UploadParty Backend Starting ===")
+	log.Printf("Environment: %s", cfg.Environment)
+	if cfg.IsProduction() {
+		log.Printf("Running in PRODUCTION mode")
+	} else {
+		log.Printf("Running in DEVELOPMENT mode")
+	}
+
 	gin.SetMode(cfg.GinMode)
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
@@ -40,6 +50,13 @@ func main() {
 	go rl.Cleanup(10 * time.Minute)
 	r.Use(rl.Middleware())
 
+	// In development, create database if it doesn't exist
+	if cfg.IsDevelopment() {
+		if err := db.CreateDatabaseIfNotExists(cfg); err != nil {
+			log.Printf("[DEV] Failed to create database: %v", err)
+		}
+	}
+
 	// Database connection with better error handling for Cloud Run
 	log.Printf("Attempting database connection...")
 	database, err := db.Connect(cfg)
@@ -56,10 +73,14 @@ func main() {
 			database = nil
 		} else {
 			log.Printf("[SUCCESS] Database connection established")
-			// Optional: keep AutoMigrate for now to ensure schema exists in dev. Fail fast if it errors
-			if err := database.AutoMigrate(&models.User{}, &models.Project{}, &models.Plugin{}); err != nil {
+			// Run migrations - required in development, optional in production
+			if err := database.AutoMigrate(&models.RSVP{}, &models.User{}, &models.Project{}, &models.Plugin{}); err != nil {
 				log.Printf("[ERROR] Database migration failed: %v", err)
-				log.Printf("[INFO] Continuing without migrations...")
+				if cfg.IsDevelopment() {
+					log.Fatalf("[DEV] Migration failure in development - exiting")
+				} else {
+					log.Printf("[INFO] Continuing without migrations in production...")
+				}
 			} else {
 				log.Printf("[SUCCESS] Database migrations completed")
 			}
@@ -79,6 +100,7 @@ func main() {
 	projCtl := controllers.NewProjectController(database)
 	pluginCtl := controllers.NewPluginController(database)
 	profCtl := controllers.NewProfileController(database, cfg.JWTSecret)
+	rsvpCtl := controllers.NewRSVPController(database)
 
 	// Health
 	r.GET("/health", healthCtl.Health)
@@ -91,6 +113,10 @@ func main() {
 		auth.POST("/register", authCtl.Register)
 		auth.POST("/login", authCtl.Login)
 	}
+
+	// RSVP (public endpoints)
+	r.POST("/rsvp", rsvpCtl.Create)
+	r.GET("/rsvp/count", rsvpCtl.Count)
 
 	// Auth0 sync endpoint (protected by Auth0 JWT)
 	// This endpoint is called by the frontend after Auth0 login to sync user info to our DB
