@@ -16,6 +16,7 @@ import (
 	"github.com/uploadparty/app/internal/integrations/licenses"
 	"github.com/uploadparty/app/internal/middlewares"
 	"github.com/uploadparty/app/internal/models"
+	"github.com/uploadparty/app/internal/services"
 	"github.com/uploadparty/app/pkg/db"
 )
 
@@ -95,12 +96,19 @@ func main() {
 	jwt := middlewares.NewJWT(cfg.JWTSecret)
 	auth0 := middlewares.NewAuth0(cfg.Auth0Domain, cfg.Auth0Audience)
 
+	// Initialize email service
+	emailService, err := services.NewEmailService(cfg)
+	if err != nil {
+		log.Printf("[EMAIL] Failed to initialize email service: %v", err)
+		emailService = nil
+	}
+
 	healthCtl := controllers.NewHealthController(database)
 	authCtl := controllers.NewAuthController(database, cfg.JWTSecret)
 	projCtl := controllers.NewProjectController(database)
 	pluginCtl := controllers.NewPluginController(database)
 	profCtl := controllers.NewProfileController(database, cfg.JWTSecret)
-	rsvpCtl := controllers.NewRSVPController(database)
+	rsvpCtl := controllers.NewRSVPController(database, emailService)
 
 	// Health
 	r.GET("/health", healthCtl.Health)
