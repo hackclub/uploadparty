@@ -11,10 +11,21 @@ type RSVP struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	Email     string `gorm:"uniqueIndex;size:255;not null" json:"email"`
-	EmailSent bool   `gorm:"default:false" json:"emailSent"`
-	UserID    *uint  `gorm:"index" json:"userId,omitempty"`
-	User      *User  `gorm:"constraint:OnDelete:SET NULL" json:"user,omitempty"`
+	Email        string `gorm:"uniqueIndex;size:255;not null" json:"email"`
+	FirstName    string `gorm:"size:100" json:"firstName"`
+	LastName     string `gorm:"size:100" json:"lastName"`
+	EmailSent    bool   `gorm:"default:false" json:"emailSent"`
+	IPAddress    string `gorm:"size:45" json:"ipAddress"`                // IPv6 max length is 45 chars
+	ReferralCode string `gorm:"uniqueIndex;size:20" json:"referralCode"` // Unique code for sharing
+
+	// Referral tracking - one-to-many relationship
+	ReferredByCode string `gorm:"size:20;index" json:"referredByCode,omitempty"` // Code used to sign up
+	ReferredByID   *uint  `gorm:"index" json:"referredById,omitempty"`
+	ReferredBy     *RSVP  `gorm:"foreignKey:ReferredByID;constraint:OnDelete:SET NULL" json:"referredBy,omitempty"`
+	Referrals      []RSVP `gorm:"foreignKey:ReferredByID" json:"referrals,omitempty"`
+
+	UserID *uint `gorm:"index" json:"userId,omitempty"`
+	User   *User `gorm:"constraint:OnDelete:SET NULL" json:"user,omitempty"`
 }
 
 type User struct {

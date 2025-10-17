@@ -125,6 +125,8 @@ func main() {
 	// RSVP (public endpoints)
 	r.POST("/rsvp", rsvpCtl.Create)
 	r.GET("/rsvp/count", rsvpCtl.Count)
+	r.GET("/rsvp/:id/referrals", rsvpCtl.GetReferrals)
+	r.PATCH("/rsvp/:id/referral-code", rsvpCtl.UpdateReferralCode)
 
 	// Auth0 sync endpoint (protected by Auth0 JWT)
 	// This endpoint is called by the frontend after Auth0 login to sync user info to our DB

@@ -125,3 +125,5 @@ To make it clear which clients call which endpoints, API v1 is split by client t
 - Public (no auth):
   - GET /profiles/:handle — Public profile and public projects
 
+
+todo figure out of

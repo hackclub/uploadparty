@@ -64,16 +64,16 @@ func (e *EmailService) SendEmail(data EmailData) error {
 	// Set subject
 	m.Subject(data.Subject)
 
-	// Set HTML body
-	m.SetBodyString(mail.TypeTextHTML, data.HTML)
-
-	// Optionally set plain text alternative
+	// Set plain text as the primary body
 	if data.Text != "" {
-		m.AddAlternativeString(mail.TypeTextPlain, data.Text)
+		m.SetBodyString(mail.TypeTextPlain, data.Text)
 	}
 
-	// Send the email
-	if err := e.client.Send(m); err != nil {
+	// Set HTML as alternative (preferred by most email clients)
+	m.AddAlternativeString(mail.TypeTextHTML, data.HTML)
+
+	// Send the email using DialAndSend
+	if err := e.client.DialAndSend(m); err != nil {
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
@@ -120,6 +120,53 @@ func (e *EmailService) SendRSVPConfirmation(email string) error {
 		Subject: "RSVP Confirmed - Thanks for RSVPing",
 		HTML:    html,
 		Text:    "Thanks for your RSVP! We've received your confirmation and you're all set. Keep an eye on your inbox for more updates about the event, join or slack or discord which ever one is more comfortable.",
+	})
+}
+
+// SendReferralNotification sends an email to the referrer when someone uses their code
+func (e *EmailService) SendReferralNotification(referrerEmail, referrerName, newUserName string) error {
+	html := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>New Referral!</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #10b981; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .highlight { background: #d1fae5; padding: 10px; border-radius: 5px; margin: 15px 0; }
+        .footer { padding: 20px; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Great news, %s! 🎉</h1>
+        </div>
+        <div class="content">
+            <p>Someone just used your referral code to RSVP!</p>
+            <div class="highlight">
+                <strong>%s</strong> has signed up using your referral link.
+            </div>
+            <p>Thank you for spreading the word about UploadParty! Every referral helps us grow our community.</p>
+            <p>Keep sharing your referral code to invite more people!</p>
+        </div>
+        <div class="footer">
+            <p>Best regards,<br>The UploadParty Team</p>
+        </div>
+    </div>
+</body>
+</html>`, referrerName, newUserName)
+
+	plainText := fmt.Sprintf("Great news, %s! %s just used your referral code to RSVP. Thank you for spreading the word about UploadParty!", referrerName, newUserName)
+
+	return e.SendEmail(EmailData{
+		To:      referrerEmail,
+		Subject: "Someone used your referral code! 🎉",
+		HTML:    html,
+		Text:    plainText,
 	})
 }
 
